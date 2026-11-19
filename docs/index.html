@@ -158,5 +158,34 @@ app.use(createAiBotDefense({ maxRpm: ${rpm}, banMs: ${banSec * 1000} }));`;
     document.getElementById('copyBtn').addEventListener('click', () => navigator.clipboard.writeText(document.getElementById('codeOut').textContent).then(() => alert('Defense config copied!')));
     render();
   </script>
+  <!-- Trilingual Auto-Detect Language Switcher (EN / PT-BR / ES) -->
+  <div id="wallison-i18n-bar" style="position:fixed;bottom:16px;left:16px;z-index:9999;display:flex;gap:4px;background:rgba(15,22,38,0.92);backdrop-filter:blur(8px);border:1px solid #334155;padding:5px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.45);font-family:system-ui,sans-serif;">
+    <button data-wl="en" style="border:none;background:transparent;color:#cbd5e1;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;">🇺🇸 EN</button>
+    <button data-wl="pt" style="border:none;background:transparent;color:#cbd5e1;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;">🇧🇷 PT</button>
+    <button data-wl="es" style="border:none;background:transparent;color:#cbd5e1;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;">🇪🇸 ES</button>
+  </div>
+  <script>
+  (function(){
+    const I18N = {"pt":{"h":"🤖 AI Bot Defense — Defesa Contra Agentes Hackers Autônomos e Fuzzers de IA","p":"Proteja APIs e servidores contra bots hackers autônomos, fuzzers e scrapers. Gere armadilhas Honeypot, Rate Limiters e regras para Nginx, Cloudflare, Fail2Ban e FastAPI."},"en":{"h":"🤖 AI Bot \u0026 Autonomous Hacker Defense Generator","p":"Defend APIs and servers from autonomous AI exploit agents, automated fuzzers \u0026 scrapers. Generate Honeypot Traps, Rate Limiters \u0026 Nginx/Cloudflare/FastAPI rules."},"es":{"h":"🤖 AI Bot Defense — Defensa Contra Agentes Hackers Autónomos y Fuzzers IA","p":"Protege APIs y servidores contra agentes de exploit autónomos y scrapers IA. Genera trampas Honeypot, limitadores de tasa y reglas Nginx/Cloudflare/FastAPI."}};
+    const btns = document.querySelectorAll('#wallison-i18n-bar button');
+    const saved = localStorage.getItem('ws_global_lang');
+    const nav = (navigator.language || 'en').toLowerCase();
+    let cur = (saved && I18N[saved]) ? saved : (nav.startsWith('pt') ? 'pt' : nav.startsWith('es') ? 'es' : 'en');
+    function apply(l){
+      cur = l; localStorage.setItem('ws_global_lang', l);
+      const h1 = document.querySelector('.hero h1, .hdr h1');
+      const p = document.querySelector('.hero p, .hdr p');
+      if (h1 && I18N[l].h) h1.textContent = I18N[l].h;
+      if (p && I18N[l].p) p.textContent = I18N[l].p;
+      btns.forEach(b => {
+        const active = b.dataset.wl === l;
+        b.style.background = active ? '#38bdf8' : 'transparent';
+        b.style.color = active ? '#060a14' : '#cbd5e1';
+      });
+    }
+    btns.forEach(b => b.addEventListener('click', () => apply(b.dataset.wl)));
+    apply(cur);
+  })();
+  </script>
 </body>
 </html>
