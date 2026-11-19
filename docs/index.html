@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Bot Defense Kit — Defend APIs Against Autonomous AI Hacking Agents &amp; Fuzzers</title>
+  <style>
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Inter',system-ui,sans-serif; background:#060a14; color:#f8fafc; min-height:100vh; padding:26px 18px; background-image:radial-gradient(circle at 12% 0%,rgba(16,185,129,0.14),transparent 40%),radial-gradient(circle at 88% 8%,rgba(14,165,233,0.14),transparent 40%); }
+    .wrap { max-width:1140px; margin:0 auto; }
+    .hero { background:linear-gradient(135deg,rgba(16,185,129,0.16),rgba(14,165,233,0.16)); border:1px solid rgba(16,185,129,0.4); border-radius:16px; padding:24px 28px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; }
+    .hero h1 { font-size:1.65rem; font-weight:800; margin-bottom:6px; }
+    .hero p { color:#94a3b8; font-size:0.9rem; max-width:680px; }
+    .btn { background:linear-gradient(135deg,#10b981,#0ea5e9); color:#070b14; border:none; padding:9px 16px; border-radius:9px; font-weight:800; cursor:pointer; font-size:0.83rem; text-decoration:none; }
+    .btn-ghost { background:#0f172a; border:1px solid #26334d; color:#e2e8f0; }
+    .card { background:#0f1626; border:1px solid #23304d; border-radius:14px; padding:20px; margin-bottom:18px; }
+    .card h2 { font-size:0.98rem; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+    .row { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:12px; }
+    label { font-size:0.78rem; color:#94a3b8; font-weight:600; display:block; margin-bottom:4px; }
+    input, select { width:100%; background:#080d18; border:1px solid #23304d; color:#f1f5f9; border-radius:8px; padding:9px 11px; font-family:Consolas,monospace; font-size:0.84rem; }
+    .tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+    .tab { padding:7px 13px; border-radius:8px; border:1px solid #23304d; background:#080d18; color:#94a3b8; font-weight:700; cursor:pointer; font-size:0.8rem; }
+    .tab.active { background:#10b981; color:#060a14; border-color:#10b981; }
+    pre { background:#080d18; border:1px solid #23304d; border-radius:8px; padding:16px; font-family:Consolas,monospace; font-size:0.81rem; color:#7dd3fc; white-space:pre-wrap; overflow-x:auto; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div>
+        <h1>🤖 AI Bot &amp; Autonomous Hacker Defense Generator</h1>
+        <p>Protect your APIs and servers from <strong>autonomous AI exploit agents, automated fuzzers, credential-stuffing swarms &amp; unauthorized AI scrapers</strong>. Generate drop-in Honeypot Traps, Rate Limiters &amp; WAF rules instantly.</p>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <a href="https://github.com/WallisonWS/ai-bot-defense" target="_blank" class="btn">⭐ Star on GitHub</a>
+        <a href="https://github.com/WallisonWS" target="_blank" class="btn btn-ghost">@WallisonWS</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>⚙️ Defense Policy Parameters</h2>
+      <div class="row">
+        <div><label>API Rate Limit (req / min / IP)</label><input type="number" id="rpm" value="60" /></div>
+        <div><label>Honeypot Trap Endpoint</label><input id="trapPath" value="/.env|/.git|/wp-login.php|/actuator/env" /></div>
+        <div><label>Auto-Ban Duration (seconds)</label><input type="number" id="banSec" value="3600" /></div>
+        <div><label>Block AI Training Scrapers?</label>
+          <select id="blockAiScrapers">
+            <option value="yes" selected>Yes (Block GPTBot, CCBot, Bytespider, ClaudeBot)</option>
+            <option value="no">No (Only block exploit scanners)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>
+        <span>🛡️ Production Defense Config Generator</span>
+        <button class="btn" id="copyBtn">📋 Copy Config</button>
+      </h2>
+      <div class="tabs" id="targetTabs">
+        <button class="tab active" data-t="nginx">Nginx (Rate Limit + Honeypot)</button>
+        <button class="tab" data-t="cloudflare">Cloudflare WAF Rule</button>
+        <button class="tab" data-t="fail2ban">Fail2Ban Anti-Fuzzer Jail</button>
+        <button class="tab" data-t="fastapi">Python FastAPI Middleware</button>
+        <button class="tab" data-t="express">Node.js Express Middleware</button>
+      </div>
+      <pre id="codeOut"></pre>
+    </div>
+  </div>
+
+  <script>
+    let target = 'nginx';
+    function render() {
+      const rpm = parseInt(document.getElementById('rpm').value, 10) || 60;
+      const traps = document.getElementById('trapPath').value.trim();
+      const banSec = parseInt(document.getElementById('banSec').value, 10) || 3600;
+      const blockScrapers = document.getElementById('blockAiScrapers').value === 'yes';
+      const rps = Math.max(1, Math.round(rpm / 60));
+      let out = '';
+
+      if (target === 'nginx') {
+        out = `# Nginx Anti-AI-Hacker & Autonomous Fuzzer Hardening
+limit_req_zone $binary_remote_addr zone=ai_api_limit:20m rate=${rps}r/s;
+limit_conn_zone $binary_remote_addr zone=ai_conn_limit:10m;
+
+server {
+    # 1) Block known automated exploit agents${blockScrapers ? ' & unauthorized AI scrapers' : ''}
+    if ($http_user_agent ~* "(sqlmap|nikto|nuclei|gobuster|ffuf|masscan${blockScrapers ? '|GPTBot|CCBot|Bytespider|ClaudeBot' : ''})") {
+        return 444; # Drop TCP connection silently
+    }
+
+    # 2) Honeypot Canary Trap (log + instant drop for Fail2Ban)
+    location ~* "^(${traps})" {
+        access_log /var/log/nginx/honeypot_bans.log;
+        return 444;
+    }
+
+    # 3) Adaptive Rate Limit for API routes
+    location /api/ {
+        limit_req zone=ai_api_limit burst=15 nodelay;
+        limit_conn ai_conn_limit 15;
+        proxy_pass http://127.0.0.1:8000;
+    }
+}`;
+      } else if (target === 'cloudflare') {
+        out = `# Cloudflare WAF Custom Rule Expression (Action: Managed Challenge or Block)
+(
+  http.request.uri.path in {"/.env" "/.git/config" "/wp-login.php" "/actuator/env"}
+  or lower(http.user_agent) contains "sqlmap"
+  or lower(http.user_agent) contains "nuclei"
+  or lower(http.user_agent) contains "ffuf"${blockScrapers ? `\n  or lower(http.user_agent) contains "bytespider"\n  or lower(http.user_agent) contains "ccbot"` : ''}
+)`;
+      } else if (target === 'fail2ban') {
+        out = `# /etc/fail2ban/jail.d/ai-bot-defense.conf
+[nginx-ai-honeypot]
+enabled  = true
+port     = http,https
+logpath  = /var/log/nginx/honeypot_bans.log
+maxretry = 1
+findtime = 60
+bantime  = ${banSec}
+action   = iptables-multiport[name=AIHoneypot, port="http,https"]`;
+      } else if (target === 'fastapi') {
+        out = `# FastAPI Drop-in Middleware using ai-bot-defense (middleware/python_shield.py)
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from middleware.python_shield import AiBotDefender
+
+app = FastAPI()
+defender = AiBotDefender(max_rpm=${rpm}, ban_seconds=${banSec})
+
+@app.middleware("http")
+async def ai_defense_guard(request: Request, call_next):
+    decision = defender.inspect_request(
+        client_ip=request.client.host,
+        path=request.url.path,
+        user_agent=request.headers.get("user-agent", "")
+    )
+    if not decision.allowed:
+        return JSONResponse({"detail": decision.reason}, status_code=decision.status_code)
+    return await call_next(request)`;
+      } else {
+        out = `// Express.js Drop-in Middleware (middleware/express_shield.mjs)
+import express from 'express';
+import { createAiBotDefense } from './middleware/express_shield.mjs';
+
+const app = express();
+app.use(createAiBotDefense({ maxRpm: ${rpm}, banMs: ${banSec * 1000} }));`;
+      }
+      document.getElementById('codeOut').textContent = out;
+    }
+
+    document.querySelectorAll('#targetTabs .tab').forEach(b => b.addEventListener('click', () => {
+      document.querySelectorAll('#targetTabs .tab').forEach(x => x.classList.remove('active'));
+      b.classList.add('active'); target = b.dataset.t; render();
+    }));
+    ['rpm','trapPath','banSec','blockAiScrapers'].forEach(id => document.getElementById(id).addEventListener('input', render));
+    document.getElementById('copyBtn').addEventListener('click', () => navigator.clipboard.writeText(document.getElementById('codeOut').textContent).then(() => alert('Defense config copied!')));
+    render();
+  </script>
+</body>
+</html>
